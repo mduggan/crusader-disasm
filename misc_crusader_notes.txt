@@ -1,0 +1,47 @@
+shape 1297
+STEAM2
+event 15 (enter fast area)
+24 frames
+Animate
+
+EnterFastArea:
+Intrinsic02A(30, 
+
+
+
+Got Hit:
+spawn process 
+
+
+
+
+
+
+shape 1232
+MONSTER (editor item)
+
+
+RFANNS:
+Item 9092 (class Item, shape 189, 3, (60990,59134,96) q:0, m:0, n:0, f:168192, ef:3)10
+(quality 24? 
+
+189 -> Shapeinfo[5] = 69
+
+
+Gauge: should animate slower, first 4 frames only
+Steam: should animate faster, all frames.
+
+First monitor:
+Item 9254 (class Item, shape 258 (uc:MONITNS), 0, (60798,59518,24) q:20, m:134, n:119, f: 0x2000, ef:0x3 shapeinfo f:2003, fam:1, et:0)
+
+First chest:
+Item 9194 (class Item, shape 1360 (uc:CHEST_EW), 0, (60702,59806,0) q:4, m:0, n:0, f: 0x2000, ef:0x3 shapeinfo f:2002, fam:1, et:0)
+
+Opening chest (CHEST_EW::use) involves:
+* get the frame, check the chest is not in a "blown up" frame (3/4)
+* get the chest's x/y/z
+* create a new shape (0x54B aka 1355) in the same spot.. or delete this shape? - calls FREE::ordinal2D
+
+
+FREE::ordinal3C : something about playing random voices when alarm is disabled?
+
