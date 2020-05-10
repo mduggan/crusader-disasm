@@ -54,7 +54,7 @@ while i < len(lines):
         d[intid].add("%s Intrinsic%s(%s)" % (ret, intid, param))
     i += 1
 
-for i in range(0x135):
+for i in range(0x138):
     intid = '%04X' % i
     if i % 16 == 0:
         print('\t// %s' % intid)
