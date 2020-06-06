@@ -15,8 +15,8 @@ def print_dupes(ostrs):
 def print_compare(vals):
     from remorse_ints import intrinsics
     #from u8_ints import intrinsics
-    for v, i in zip(vals, intrinsics):
-            print("%s: %s" % (v, i))
+    for ino, (v, i) in enumerate(zip(vals, intrinsics)):
+            print("%s: (Int%03X) %s" % (v, ino, i))
 
 
 def load_vals():
@@ -24,7 +24,12 @@ def load_vals():
     offsets = f.read()
     nints = len(offsets)/4
     ioff = unpack('i' * nints, offsets)
-    ostrs = ['%08x' % x for x in ioff]
+    ostrs = []
+    for i in ioff:
+        seg = (i & 0xffff0000) >> 16
+        off = i & 0xffff
+        ostr = 'Code%03d %04x:%04x' % (seg, 0x1000 + (seg - 1)*8, off)
+        ostrs.append(ostr)
     return ostrs
 
 
