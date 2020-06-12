@@ -1,6 +1,18 @@
 from struct import unpack
 from collections import defaultdict
 
+
+mode = 'u8'
+#mode = 'remorse'
+
+if mode == 'u8':
+    from u8_ints import intrinsics
+    off_file = 'u8_UNKCOFF.DAT'
+else:
+    from remorse_ints import intrinsics
+    off_file = 'remorse_UNKCOFF.DAT'
+
+
 def print_dupes(ostrs):
     vals = defaultdict(list)
     for i, ostr in enumerate(ostrs):
@@ -13,14 +25,12 @@ def print_dupes(ostrs):
 
 
 def print_compare(vals):
-    from remorse_ints import intrinsics
-    #from u8_ints import intrinsics
     for ino, (v, i) in enumerate(zip(vals, intrinsics)):
-            print("%s: (Int%03X) %s" % (v, ino, i))
+        print("%s: (Int%03X) %s" % (v, ino, i))
 
 
 def load_vals():
-    f = open("remorse_UNKCOFF.DAT", "rb")
+    f = open(off_file, "rb")
     offsets = f.read()
     nints = len(offsets)/4
     ioff = unpack('i' * nints, offsets)
