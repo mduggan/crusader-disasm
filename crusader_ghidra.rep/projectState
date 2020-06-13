@@ -18,16 +18,16 @@
                 </PLUGIN_STATE>
                 <ROOT_NODE X_POS="31" Y_POS="246" WIDTH="800" HEIGHT="600" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
                     <COMPONENT_NODE TOP_INFO="0">
-                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3337807848748394295" />
+                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3338539230899713943" />
                     </COMPONENT_NODE>
                 </ROOT_NODE>
                 <PREFERENCES>
                     <PREFERENCE_STATE NAME="docking.widgets.filechooser.DirectoryTableModel:Filename:Size:Modified:">
                         <XML NAME="COLUMN_DATA">
                             <Table_State>
-                                <COLUMN NAME="Filename" WIDTH="231" VISIBLE="true" />
-                                <COLUMN NAME="Size" WIDTH="231" VISIBLE="true" />
-                                <COLUMN NAME="Modified" WIDTH="231" VISIBLE="true" />
+                                <COLUMN NAME="Filename" WIDTH="222" VISIBLE="true" />
+                                <COLUMN NAME="Size" WIDTH="222" VISIBLE="true" />
+                                <COLUMN NAME="Modified" WIDTH="222" VISIBLE="true" />
                                 <TABLE_SORT_STATE>
                                     <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
                                 </TABLE_SORT_STATE>
