@@ -1,9 +1,10 @@
+#!/usr/bin/env python
 from struct import unpack
 from collections import defaultdict
 
 
-mode = 'u8'
-#mode = 'remorse'
+#mode = 'u8'
+mode = 'remorse'
 
 if mode == 'u8':
     from u8_ints import intrinsics
