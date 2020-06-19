@@ -49,25 +49,21 @@ CTRL-L  0x426
 CTRL-V  0x42F
 CTRL-Q  0x410
 
-
 ------
-FUN_1130_0896 - has cheats.  Immortality (field 13 flag 1)
-FUN_1130_32af - seems important to starting an animation - check back into this!
+
+Useful functions:
+FUN_1130_0896 - has cheats.  eg, Immortality (field 13 flag 1)
+FUN_1130_32af - seems important to starting an animation - check back into this.
 FUN_1020_0000 - some important startup operations - check this more too.
 FUN_1128_026b - various deaths etc.
+Kernel_11d0_2491 - prints kernel info, maybe useful for understanding menaing of some variables.
 
+------
 
-TODO: check how intrinsic A7 and A3 are used in code - they seem to be getting and tweaking only half the NPCNum byte?
+High priority unknown intrinsics:
 
-
-High priority intrinsics:
-
-007 (cameras)
-103 (door lock)
-06E (start monster)
-12F (start monster)
-074 (box)
-070 (box)
-058 (box)
-01B (medthing)
-00B (medthing - probably get HP?)
+042 (cameras)
+12F (start monster) // configure monster from egg??
+037 (box)           // pick up item
+00B (medthing - maybe get HP?)
+057 (valve)         // find nearby objects with some loopscript thing..
