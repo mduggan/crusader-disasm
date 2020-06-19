@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # A fairly simple script to import my comments from an old disassembly when I
 # update intrinsic names and regenerate the disassembly.
 
