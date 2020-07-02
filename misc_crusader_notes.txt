@@ -40,7 +40,6 @@ Opening chest (CHEST_EW::use) involves:
 
 FREE::ordinal3C : something about playing random voices when alarm is disabled?
 
-
 -----
 
 Keyboard codes:
@@ -67,3 +66,29 @@ High priority unknown intrinsics:
 037 (box)           // pick up item
 00B (medthing - maybe get HP?)
 057 (valve)         // find nearby objects with some loopscript thing..
+
+------
+
+Interesting Shapes:
+
+0x59a 1434 - the targetting reticle (getting smaller)
+0x111 - Keycard (see fn 1188:070f)
+0x4ed - Credits (see fn 1188:070f)
+
+
+TODO: Read combat.dat data flex.  Each entry represents a tactic.  they have names at the start:
+Dumb
+Pivot
+Advance
+Mental
+Careful
+OneToTwo
+ThreeToFour
+EggHopper1
+StepOutShootNE
+StepOutShootNW
+Random_CHAOS
+Static_Chaos
+Stand_Choas
+123_Shoot
+
