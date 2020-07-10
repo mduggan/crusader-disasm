@@ -4,16 +4,8 @@ event 15 (enter fast area)
 24 frames
 Animate
 
-EnterFastArea:
-Intrinsic02A(30, 
-
-
 Got Hit:
 spawn process 
-
-
-shape 1232
-MONSTER (editor item)
 
 
 RFANNS:
@@ -61,11 +53,7 @@ Kernel_11d0_2491 - prints kernel info, maybe useful for understanding menaing of
 
 High priority unknown intrinsics:
 
-042 (cameras)
-12F (start monster) // configure monster from egg??
-037 (box)           // pick up item
 00B (medthing - maybe get HP?)
-057 (valve)         // find nearby objects with some loopscript thing..
 
 ------
 
@@ -74,9 +62,13 @@ Interesting Shapes:
 0x59a 1434 - the targetting reticle (getting smaller)
 0x111 - Keycard (see fn 1188:070f)
 0x4ed - Credits (see fn 1188:070f)
+0x4d4 - datalink - given to avatar on start
+0x598 - weird hand-drawn smiley.. given to avatar on start?
+0x4d0 1232 - MONSTER (editor item)
+0x4fe - SnapEgg - when this enters fast area, we add it to the SnapProcess
 
 
-TODO: Read combat.dat data flex.  Each entry represents a tactic.  they have names at the start:
+TODO: Do things in combat.dat data flex.  Each entry represents a tactic.  they have names at the start:
 Dumb
 Pivot
 Advance
@@ -92,3 +84,33 @@ Static_Chaos
 Stand_Choas
 123_Shoot
 
+-----------
+Interesting places to warp to:
+
+CRUSADER.EXE -warp 2 17215 16719 0
+CRUSADER.EXE -warp 3 1150 1150 0
+CRUSADER.EXE -warp 4 1200 1800 0
+
+or just -warp level -egg 250
+
+-----------
+
+Misc TODO list:
+* Fire intrinsic
+* Support 16 dir combat stance
+* Guard Process (implementation started..)
+* Pace Process
+* Item selection gump
+* Work out why medikit "use" doesn't work
+* Start working on Intrinsic 050 (transfer control)
+* Implement intrinsics for current activity / last activity
+* Add slider to movements so that moving around is easier
+* Weapon overlay for avatar
+* Work out why valve doesn't trigger fire at start
+* Work out why passcode is always 8
+* Work out why computers alway say alarm not enabled, even when it is
+* look at differences to U8 in Item_EnterFastArea (eg, snap egg?)
+* Check if we need to check is_Dead etc in Item::Use (see Item_Use)
+* Check if we need to check Is_Dead on Item::AvatarStoleSomething
+* Get the snap process working properly
+* Remaining unimplemented intrinsics
