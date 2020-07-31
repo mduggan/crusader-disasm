@@ -53,20 +53,28 @@ Kernel_11d0_2491 - prints kernel info, maybe useful for understanding menaing of
 
 High priority unknown intrinsics:
 
-00B (medthing - maybe get HP?)
+01E - fire
 
 ------
 
 Interesting Shapes:
 
-0x59a 1434 - the targetting reticle (getting smaller)
 0x111 - Keycard (see fn 1188:070f)
-0x4ed - Credits (see fn 1188:070f)
-0x4d4 - datalink - given to avatar on start
-0x598 - weird hand-drawn smiley.. given to avatar on start?
+0x38d 909 - a big gun
+0x3ac 940 - A
 0x4d0 1232 - MONSTER (editor item)
+0x4d4 - datalink - given to avatar on start
+0x4ed - Credits (see fn 1188:070f)
 0x4fe - SnapEgg - when this enters fast area, we add it to the SnapProcess
+0x576 - flaming guy running around
+0x598 - weird hand-drawn smiley.. given to avatar on start?
+0x59a 1434 - the targetting reticle (getting smaller)
+0x5a3 1443 - use item crosshairs
 
+0x5a9 1449 - small red shield zap
+0x52b 1323 - big shield zap ball
+
+------
 
 TODO: Do things in combat.dat data flex.  Each entry represents a tactic.  they have names at the start:
 Dumb
@@ -96,21 +104,6 @@ or just -warp level -egg 250
 -----------
 
 Misc TODO list:
-* Fire intrinsic
-* Support 16 dir combat stance
-* Guard Process (implementation started..)
-* Pace Process
-* Item selection gump
-* Work out why medikit "use" doesn't work
-* Start working on Intrinsic 050 (transfer control)
-* Implement intrinsics for current activity / last activity
-* Add slider to movements so that moving around is easier
-* Weapon overlay for avatar
-* Work out why valve doesn't trigger fire at start
-* Work out why passcode is always 8
-* Work out why computers alway say alarm not enabled, even when it is
-* look at differences to U8 in Item_EnterFastArea (eg, snap egg?)
-* Check if we need to check is_Dead etc in Item::Use (see Item_Use)
-* Check if we need to check Is_Dead on Item::AvatarStoleSomething
-* Get the snap process working properly
-* Remaining unimplemented intrinsics
+https://docs.google.com/spreadsheets/d/1neot7dAwY_PQIfE0LzsjC2VUqzN7t6Uo2OoKhsR2LWo/edit#gid=177976446
+
+TODO: Look at ItemNPC_AnotherCreate - the way it uses area search.
