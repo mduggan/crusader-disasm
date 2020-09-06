@@ -4,15 +4,19 @@ from collections import defaultdict
 
 
 #mode = 'u8'
-mode = 'remorse'
+#mode = 'remorse'
+mode = 'regret'
 
 if mode == 'u8':
     from u8_ints import intrinsics
     off_file = 'u8_UNKCOFF.DAT'
-else:
+elif mode == 'remorse':
     from remorse_ints import intrinsics
     off_file = 'remorse_UNKCOFF.DAT'
-
+    #off_file = 'rem_es_UNKCOFF.DAT'
+else:
+    off_file = 'regret_UNKCOFF.DAT'
+    from regret_ints import intrinsics
 
 def print_dupes(ostrs):
     vals = defaultdict(list)
