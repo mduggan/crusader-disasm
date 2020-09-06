@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FILE_INFO>
+    <BASIC_INFO>
+        <STATE NAME="CONTENT_TYPE" TYPE="string" VALUE="Program" />
+        <STATE NAME="PARENT" TYPE="string" VALUE="/es" />
+        <STATE NAME="FILE_ID" TYPE="string" VALUE="c0a81cae9d9199955198274971" />
+        <STATE NAME="FILE_TYPE" TYPE="int" VALUE="0" />
+        <STATE NAME="READ_ONLY" TYPE="boolean" VALUE="false" />
+        <STATE NAME="NAME" TYPE="string" VALUE="CRUSADER.EXE" />
+    </BASIC_INFO>
+</FILE_INFO>
