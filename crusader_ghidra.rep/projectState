@@ -54,9 +54,10 @@
         <SAVE_STATE>
             <ARRAY NAME="EXPANDED_PATHS" TYPE="string">
                 <A VALUE="crusader_ghidra:ja:" />
+                <A VALUE="crusader_ghidra:regret:" />
                 <A VALUE="crusader_ghidra:demo:" />
-                <A VALUE="crusader_ghidra:" />
                 <A VALUE="crusader_ghidra:es:" />
+                <A VALUE="crusader_ghidra:" />
             </ARRAY>
             <STATE NAME="SHOW_TABLE" TYPE="boolean" VALUE="false" />
         </SAVE_STATE>
