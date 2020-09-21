@@ -1,0 +1,46 @@
+Code002 1008:005d: (Int0B6) Intrinsic00B6()
+Code002 1008:0090: (Int083) Intrinsic0083()
+Code002 1008:0096: (Int084) Intrinsic0084()
+Code002 1008:009c: (Int145) Intrinsic0145()
+Code002 1008:00e7: (Int070) Intrinsic0070()
+Code002 1008:00ed: (Int071) Intrinsic0071()
+Code002 1008:0123: (Int06B) Intrinsic006B()
+Code002 1008:0134: (Int06A) Intrinsic006A()
+
+Code002 1008:03ab: (Int03C) Intrinsic003C()
+Code002 1008:03ab: (Int14E) Intrinsic003C()
+Code002 1008:0b7f: (Int0B5) Intrinsic00B5()
+
+Code007 1030:0c60: (Int085) Intrinsic0085()
+
+Code011 1050:0079: (Int15D) Intrinsic015D()
+
+Code023 10b0:38f1: (Int093) Item::shoot(WorldPoint&,sint16,sint16)
+
+Code023 10b0:3973: (Int029) Intrinsic0029() // audio
+Code023 10b0:39b1: (Int037) Intrinsic0037() // audio
+Code023 10b0:39d0: (Int040) Intrinsic0040() // audio
+Code023 10b0:39ef: (Int02C) Intrinsic002C() // audio
+Code023 10b0:3a0b: (Int035) Intrinsic0035() // audio
+Code023 10b0:3a33: (Int033) Intrinsic0033() // audio - setVolumeForItemSFX
+
+Code030 10e8:0000: (Int14C) Intrinsic014C()
+Code030 10e8:0247: (Int141) Intrinsic0141()
+Code032 10f8:2499: (Int061) Intrinsic0061()
+Code032 10f8:3a6b: (Int0FB) Intrinsic00FB()
+Code032 10f8:44f4: (Int00D) Intrinsic000D()
+Code032 10f8:4511: (Int0DF) Intrinsic00DF()
+Code032 10f8:452f: (Int0D1) Intrinsic00D1()
+Code041 1140:04cb: (Int055) Intrinsic0055()
+Code041 1140:1a86: (Int019) Intrinsic0019()
+Code041 1140:20cb: (Int131) Intrinsic0131()
+Code041 1140:258e: (Int036) Intrinsic0036()
+Code041 1140:2a78: (Int0FE) Intrinsic00FE()
+Code041 1140:2a98: (Int0C8) Intrinsic00C8()
+Code045 1160:0d96: (Int0A9) Intrinsic00A9()
+Code052 1198:0013: (Int03F) Intrinsic003F()
+
+Code058 11c8:0000: (Int137) Intrinsic0137()
+Code058 11c8:0006: (Int09F) Intrinsic009F()
+
+Code138 1448:0b5a: (Int06D) Intrinsic006D()
