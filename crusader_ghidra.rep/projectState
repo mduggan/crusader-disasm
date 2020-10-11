@@ -16,25 +16,37 @@
                         <A VALUE="/usr/lib/java" />
                     </ARRAY>
                 </PLUGIN_STATE>
-                <ROOT_NODE X_POS="96" Y_POS="100" WIDTH="800" HEIGHT="600" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
+                <ROOT_NODE X_POS="111" Y_POS="64" WIDTH="1059" HEIGHT="745" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
                     <COMPONENT_NODE TOP_INFO="0">
-                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3347237029078721687" />
+                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3356850151564423639" />
                     </COMPONENT_NODE>
                 </ROOT_NODE>
                 <PREFERENCES>
+                    <PREFERENCE_STATE NAME="docking.widgets.filechooser.DirectoryTableModel:Filename:Size:Modified:">
+                        <XML NAME="COLUMN_DATA">
+                            <Table_State>
+                                <COLUMN NAME="Filename" WIDTH="231" VISIBLE="true" />
+                                <COLUMN NAME="Size" WIDTH="231" VISIBLE="true" />
+                                <COLUMN NAME="Modified" WIDTH="231" VISIBLE="true" />
+                                <TABLE_SORT_STATE>
+                                    <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
+                                </TABLE_SORT_STATE>
+                            </Table_State>
+                        </XML>
+                    </PREFERENCE_STATE>
                     <PREFERENCE_STATE NAME="ghidra.framework.main.datatable.ProjectDataTableModel:Type:Name:Path:Modified:Processor:Endian:Address Size:Compiler:Size:Format:">
                         <XML NAME="COLUMN_DATA">
                             <Table_State>
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileTypeColumn.Type" WIDTH="21" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileNameColumn.Name" WIDTH="119" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFilePathColumn.Path" WIDTH="119" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$ModificationDateColumn.Modified" WIDTH="119" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.ProcessorProjectDataColumn.Processor" WIDTH="63" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.EndianProjectDataColumn.Endian" WIDTH="63" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.AddressSizeProjectDataColumn.Address Size" WIDTH="40" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.CompilerProjectDataColumn.Compiler" WIDTH="63" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.DomainFileSizeProjectDataColumn.Size" WIDTH="74" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.FormatProjectDataColumn.Format" WIDTH="74" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileTypeColumn.Type" WIDTH="47" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileNameColumn.Name" WIDTH="145" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFilePathColumn.Path" WIDTH="145" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$ModificationDateColumn.Modified" WIDTH="145" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.ProcessorProjectDataColumn.Processor" WIDTH="89" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.EndianProjectDataColumn.Endian" WIDTH="89" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.AddressSizeProjectDataColumn.Address Size" WIDTH="66" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.CompilerProjectDataColumn.Compiler" WIDTH="89" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.DomainFileSizeProjectDataColumn.Size" WIDTH="100" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.FormatProjectDataColumn.Format" WIDTH="99" VISIBLE="true" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.CreationDateProjectDataColumn.Created" WIDTH="200" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.ExecutablePathProjectDataColumn.Executable Path" WIDTH="60" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.LanguageProjectDataColumn.Language ID" WIDTH="60" VISIBLE="false" />
@@ -54,10 +66,10 @@
         <SAVE_STATE>
             <ARRAY NAME="EXPANDED_PATHS" TYPE="string">
                 <A VALUE="crusader_ghidra:ja:" />
-                <A VALUE="crusader_ghidra:regret:" />
                 <A VALUE="crusader_ghidra:demo:" />
-                <A VALUE="crusader_ghidra:es:" />
+                <A VALUE="crusader_ghidra:regret:" />
                 <A VALUE="crusader_ghidra:" />
+                <A VALUE="crusader_ghidra:es:" />
             </ARRAY>
             <STATE NAME="SHOW_TABLE" TYPE="boolean" VALUE="false" />
         </SAVE_STATE>
