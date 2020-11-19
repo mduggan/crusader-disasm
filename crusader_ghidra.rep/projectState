@@ -16,9 +16,9 @@
                         <A VALUE="/usr/lib/java" />
                     </ARRAY>
                 </PLUGIN_STATE>
-                <ROOT_NODE X_POS="113" Y_POS="59" WIDTH="1059" HEIGHT="745" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
+                <ROOT_NODE X_POS="205" Y_POS="97" WIDTH="1059" HEIGHT="745" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
                     <COMPONENT_NODE TOP_INFO="0">
-                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3361419347658618103" />
+                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3363944450177517591" />
                     </COMPONENT_NODE>
                 </ROOT_NODE>
                 <PREFERENCES>
@@ -28,6 +28,16 @@
                                 <COLUMN NAME="Filename" WIDTH="231" VISIBLE="true" />
                                 <COLUMN NAME="Size" WIDTH="231" VISIBLE="true" />
                                 <COLUMN NAME="Modified" WIDTH="231" VISIBLE="true" />
+                                <TABLE_SORT_STATE>
+                                    <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
+                                </TABLE_SORT_STATE>
+                            </Table_State>
+                        </XML>
+                    </PREFERENCE_STATE>
+                    <PREFERENCE_STATE NAME="ghidra.app.plugin.core.help.ProcessorListPlugin$ProcessorListTableModel:Processor:">
+                        <XML NAME="COLUMN_DATA">
+                            <Table_State>
+                                <COLUMN NAME="Processor" WIDTH="450" VISIBLE="true" />
                                 <TABLE_SORT_STATE>
                                     <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
                                 </TABLE_SORT_STATE>
@@ -65,11 +75,11 @@
     <PROJECT_DATA_XML_NAME NAME="DISPLAY_DATA">
         <SAVE_STATE>
             <ARRAY NAME="EXPANDED_PATHS" TYPE="string">
-                <A VALUE="crusader_ghidra:demo:" />
+                <A VALUE="crusader_ghidra:es:" />
+                <A VALUE="crusader_ghidra:ja:" />
                 <A VALUE="crusader_ghidra:regret:" />
                 <A VALUE="crusader_ghidra:" />
-                <A VALUE="crusader_ghidra:ja:" />
-                <A VALUE="crusader_ghidra:es:" />
+                <A VALUE="crusader_ghidra:demo:" />
             </ARRAY>
             <STATE NAME="SHOW_TABLE" TYPE="boolean" VALUE="false" />
         </SAVE_STATE>
