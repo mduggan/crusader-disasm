@@ -14,10 +14,6 @@ Item 9092 (class Item, shape 189, 3, (60990,59134,96) q:0, m:0, n:0, f:168192, e
 
 189 -> Shapeinfo[5] = 69
 
-
-Gauge: should animate slower, first 4 frames only
-Steam: should animate faster, all frames.
-
 First monitor:
 Item 9254 (class Item, shape 258 (uc:MONITNS), 0, (60798,59518,24) q:20, m:134, n:119, f: 0x2000, ef:0x3 shapeinfo f:2003, fam:1, et:0)
 
@@ -47,7 +43,7 @@ FUN_1130_0896 - has cheats.  eg, Immortality (field 13 flag 1)
 FUN_1130_32af - seems important to starting an animation - check back into this.
 FUN_1020_0000 - some important startup operations - check this more too.
 FUN_1128_026b - various deaths etc.
-Kernel_11d0_2491 - prints kernel info, maybe useful for understanding menaing of some variables.
+Kernel_11d0_2491 - prints kernel info, maybe useful for understanding meaning of some variables.
 
 ------
 
@@ -69,10 +65,13 @@ Interesting Shapes:
 0x576 - flaming guy running around
 0x598 - weird hand-drawn smiley.. given to avatar on start?
 0x59a 1434 - the targetting reticle (getting smaller)
-0x5a3 1443 - use item crosshairs
+0x5a3 1443 - use item crosshairs (same in regret)
 
 0x5a9 1449 - small red shield zap
 0x52b 1323 - big shield zap ball
+
+(regret)
+1052 - Zurovec and the U8 daemon?
 
 ------
 
@@ -100,6 +99,19 @@ CRUSADER.EXE -warp 3 1150 1150 0
 CRUSADER.EXE -warp 4 1200 1800 0
 
 or just -warp level -egg 250
+
+-----------
+
+Speed
+
+KeyboardDaemon runs at 45 cycles per second
+
+5 regular turns in original takes 20 seconds (4 seconds per turn, 90 degrees
+per second, 2 degrees per keyboard cycle (matches Avatar_UpdateAngle function!)
+
+with shift down:
+10 rotations in 16 seconds (0.625s per turn, 225 degrees per second - 5 degrees
+per keyboard cycle!
 
 -----------
 
