@@ -1,7 +1,7 @@
 static const int DIR_ONE_RIGHT = 0x11;
 static const int DIR_ONE_LEFT  = 0x12;
 
-static const int SCAN_QUESTION = 0x35;
+static const int SCAN_SLASH = 0x35;
 // Num pad scan codes
 static const int SCAN_HOME  = 0x47;
 static const int SCAN_UP    = 0x48;
@@ -26,26 +26,35 @@ enum Animation {
 
 class NPC {
 public:
-    bool isDead();
-    bool isKneeling();
-    bool isBusy();
-    bool onRebelBase();
-    int getShape();
-    byte getDir();
-    enum Animation getLastAnimSet();
-    int doAnim(enum Animation, int dir, int unk1, int unk2);
-    bool isLastAnimRunningJumping();
-    bool isLastAnimStartRunning();
-    bool isLastAnimSlideLeftRight();
-    int getActiveWeaponItem();
+    bool isDead() const;
+    bool isKneeling() const;
+    bool isBusy() const;
+    bool onRebelBase() const;
+    int getShape() const;
+    byte getDir() const;
+    enum Animation getLastAnimSet() const;
+    bool isLastAnimRunningJumping() const;
+    bool isLastAnimStartRunning() const;
+    bool isLastAnimSlideLeftRight() const;
+    int getActiveWeaponItem() const;
+    int doAnim(enum Animation, byte dir, int unk1, int unk2);
 };
 
 class Key {
 public:
-    bool isCapslockOn();
-    bool isAltDown();
-    bool isShiftDown();
-    bool noKeysAreDown();
+    Key(byte *event) {};
+
+    byte charcode;
+    int scancode;
+    byte field_0x8;
+    byte field_0x9;
+    int field_0xa;
+    bool isCapslockOn() const;
+    bool isNumlockOn() const;
+    bool isAltDown() const;
+    bool isCtrlDown() const;
+    bool isShiftDown() const;
+    bool noKeysAreDown() const;
 };
 
 struct AnimPrimitiveProcess {
@@ -56,7 +65,7 @@ struct AnimPrimitiveProcess {
 
 int g_currentControlledNPCNum2 = 1;
 bool g_avatarInStasis = false;
-void Avatar_UpdateAngle(dword param_1, byte *keyevent, byte *newdir, enum Animation *animno, bool iswalk);
+void Avatar_UpdateAngle(byte *dummy, const Key &key, byte *newdir, enum Animation *animno, bool iswalk);
 struct AnimPrimitiveProcess *Process_GetProcById(int);
 struct AnimPrimitiveProcess *Process_Get_11d0_151d(int objno, byte proctype);
 void Target_ClearCrosshairsAndTargetReticle();
@@ -65,38 +74,34 @@ bool ControlledNPC_LastAnimNotCombatAnim();
 int DAT_1478_085f;
 bool ControlledNPC_LastAnimNotInSomeValues_1130_0070();
 bool g_avatarSomethingCombatty;
-int FUN_1130_0f94(enum Animation anim);
-int KeyEventCheckSomeFlags_11c8_018a(byte *keyevent);
+bool Anim_1130_0f94(enum Animation anim);
+byte Direction_MoveBy(byte curdir, byte relative, bool is16dir);
 
 
 
 
-byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
-  byte dir;
+byte Avatar_PickNextAnimByKeydown(const Key &key) {
   int dir_delta;
   byte newdir;
   NPC npc;
-  Key key;
 
   byte retval = 1;
   bool local_5 = false;
   bool local_6 = false;
   bool local_7 = false;
-  int npcno = g_currentControlledNPCNum2;
   enum Animation animno = Anim_NoAnim;
   enum Animation animno_2 = Anim_NoAnim;
   enum Animation animno_3 = Anim_NoAnim;
-  bool iswalk = false;
-  keyevent = (byte *)keyevent;
-  bool local_23 = (*(uint *)(keyevent + 2) & 0x20) != 0;
+  const int npcno = g_currentControlledNPCNum2;
 
-  if (((DAT_1478_085f == '\0') || (npcno == 0)) || npc.isDead() || (npcno == 1 && g_avatarInStasis)) {
+  if (DAT_1478_085f == '\0' || npcno == 0 || npc.isDead() || (npcno == 1 && g_avatarInStasis)) {
     return 0;
   }
 
-  enum Animation lastanim = npc.getLastAnimSet();
-  byte direction = npc.getDir();
-  bool lastwascombat = !ControlledNPC_LastAnimNotCombatAnim();
+  const bool numlock_on = key.isNumlockOn();
+  const enum Animation lastanim = npc.getLastAnimSet();
+  const byte curdir = npc.getDir();
+  const bool lastwascombat = !ControlledNPC_LastAnimNotCombatAnim();
 
   enum Animation runanim;
   if (npc.getActiveWeaponItem() == 0) {
@@ -105,6 +110,7 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
     runanim = Anim_CombatRun_SmallWpn;
   }
 
+  bool iswalk = false;
   if (key.isCapslockOn()) {
     if (!key.isShiftDown()) {
       iswalk = true;
@@ -115,96 +121,91 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
     }
   }
 
-  if (keyevent[8] == 0) {
+  if (key.field_0x8 == 0) { // (event is key down? vs key up?)
     if (key.noKeysAreDown()) {
-        if (!npc.onRebelBase()) {
-          if (!npc.isKneeling()) {
-            if (!npc.isLastAnimRunningJumping() && !npc.isLastAnimStartRunning()) {
-              if (!npc.isLastAnimSlideLeftRight()) {
-                if (lastwascombat) {
-                  if (npcno == 1 ||
-                     (lastanim != Anim_Retreat_SmallWpn && lastanim != Anim_Retreat_LargeWpn)) {
-                    animno = Anim_CombatStand_SmallWpn;
-                  } else {
-                    animno = Anim_Stand;
-                  }
-                } else {
-                  animno = Anim_Stand;
-                }
+      if (!npc.onRebelBase()) {
+        if (!npc.isKneeling()) {
+          if (!npc.isLastAnimRunningJumping() && !npc.isLastAnimStartRunning()) {
+            if (!npc.isLastAnimSlideLeftRight()) {
+              if (lastwascombat &&
+                  (npcno == 1 ||
+                   (lastanim != Anim_Retreat_SmallWpn && lastanim != Anim_Retreat_LargeWpn))) {
+                animno = Anim_CombatStand_SmallWpn;
+              } else {
+                animno = Anim_Stand;
               }
-            } else {
-              animno = Anim_StopRunningAndDraw_SmallWpn;
             }
           } else {
-            animno = Anim_Kneel_SmallWpn;
+            animno = Anim_StopRunningAndDraw_SmallWpn;
           }
         } else {
-		  // always stand on base
-          animno = Anim_Stand;
+          animno = Anim_Kneel_SmallWpn;
         }
-        if (animno == Anim_NoAnim) {
-          retval = 0;
-        } else {
-          npc.doAnim(animno,0x10,10000,0);
-        }
+      } else {
+	    // always stand on base
+        animno = Anim_Stand;
+      }
+      if (animno == Anim_NoAnim) {
+        retval = 0;
+      } else {
+        npc.doAnim(animno, 0x10, 10000, 0);
+      }
     } else {
       retval = 0;
     }
+    return retval;
   } else {
-    switch(keyevent[1]) {
-    case SCAN_QUESTION:
-      if (keyevent[9] == 0) {
+    switch(key.scancode) {
+    case SCAN_SLASH:
+      if (key.field_0x9 == 0) {
         retval = 0;
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_6 = true;
       }
       break;
-    default:
-      retval = 0;
-      break;
     case SCAN_HOME:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 0xc;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_5 = true;
       }
       break;
     case SCAN_UP:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 0xe;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
       }
       break;
     case SCAN_PG_UP:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 0;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_5 = true;
       }
       break;
     case SCAN_LEFT:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 10;
         } else {
           newdir = DIR_ONE_LEFT;
@@ -214,12 +215,12 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
       }
       break;
     case SCAN_NUM_5:
-      newdir = direction;
+      newdir = curdir;
       break;
     case SCAN_RIGHT:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 2;
         } else {
           newdir = DIR_ONE_RIGHT;
@@ -229,109 +230,88 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
       }
       break;
     case SCAN_END:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 8;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_5 = true;
       }
       break;
     case SCAN_DOWN:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 6;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
       }
       break;
     case SCAN_PG_DN:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         local_6 = true;
-        if (!local_23) {
+        if (!numlock_on) {
           newdir = 4;
         } else {
-          newdir = direction;
+          newdir = curdir;
         }
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_5 = true;
       }
       break;
     case SCAN_INS:
-      if (keyevent[9] == 0) {
-        retval = 0;
-      } else {
-        newdir = direction;
-        local_5 = true;
-      }
-      break;
     case SCAN_DEL:
-      if (keyevent[9] == 0) {
+      if (key.field_0x9 == 0) {
         retval = 0;
       } else {
-        newdir = direction;
+        newdir = curdir;
         local_5 = true;
       }
+    default:
+      retval = 0;
+      break;
     }
     if (retval != 0) {
       if (!npc.onRebelBase()) {
-        if (KeyEventCheckSomeFlags_11c8_018a(keyevent) == 0) {
-          if (!key.isAltDown() == 0) {
-            if (keyevent[1] == SCAN_NUM_5) {
-              if (*(int *)(keyevent + 10) == 1) {
-                if (!npc.isKneeling()) {
-                  animno = Anim_KneelStart;
-                } else {
-                  animno = Anim_KneelStop;
-                }
+        if (!key.isCtrlDown()) {
+          if (!key.isAltDown()) {
+            if (key.scancode == SCAN_NUM_5) {
+              if (key.field_0xa == 1) {
+                animno = (npc.isKneeling() ? Anim_KneelStop : Anim_KneelStart);
               }
             } else {
               if (lastanim == Anim_Walk || npc.isLastAnimStartRunning() || npc.isLastAnimRunningJumping()) {
-                if (!iswalk) {
+                if (!iswalk || key.scancode == SCAN_SLASH) {
                   animno = runanim;
                 } else {
-                  if (keyevent[1] == SCAN_QUESTION) {
-                    animno = runanim;
-                  } else {
-                    animno = Anim_Walk;
-                  }
+                  animno = Anim_Walk;
                 }
               } else {
                 if (!local_5) {
-                  if ((keyevent[9] == 0) || (keyevent[1] != SCAN_DOWN)) {
-                    if (!local_23 || !local_6) {
-                      if (direction == newdir) {
-                        if (keyevent[1] == SCAN_QUESTION) {
+                  if ((key.field_0x9 == 0) || (key.scancode != SCAN_DOWN)) {
+                    if (!numlock_on || !local_6) {
+                      if (curdir == newdir) {
+                        if (key.scancode == SCAN_SLASH) {
                           animno = Anim_Advance_SmallWpn;
                         } else {
-                          if (!iswalk) {
-                            animno = Anim_StartRun_SmallWpn;
-                          } else {
-                            animno = Anim_Walk;
-                          }
+                          animno = (iswalk ? Anim_Walk : Anim_StartRun_SmallWpn);
                         }
                       } else {
-                        if (((keyevent[9] == 0) && (g_avatarSomethingCombatty == 0)) &&
-                           ((keyevent[1] == SCAN_LEFT || (keyevent[1] == SCAN_RIGHT)))) {
+                        if (((key.field_0x9 == 0) && (g_avatarSomethingCombatty == 0)) &&
+                           ((key.scancode == SCAN_LEFT || (key.scancode == SCAN_RIGHT)))) {
                           if (lastwascombat) {
                             if (!ControlledNPC_LastAnimNotInSomeValues_1130_0070()) {
-                              if (!iswalk) {
-                                animno = Anim_StartRun_SmallWpn;
-                              } else {
-                                animno = Anim_Walk;
-                              }
+                              animno = (iswalk ? Anim_Walk : Anim_StartRun_SmallWpn);
                             } else {
-                              if ((lastanim != Anim_ReadyWeapon_SmallWpn) &&
-                                 (lastanim != Anim_ReadyWeapon_LargeWpn)) {
+                              if (lastanim != Anim_ReadyWeapon_SmallWpn && lastanim != Anim_ReadyWeapon_LargeWpn) {
                                 animno = Anim_CombatStand_SmallWpn;
                                 local_7 = true;
                               }
@@ -341,43 +321,36 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
                           }
                         } else {
                           if (lastwascombat) {
-                            if (!local_6 || local_23) {
-                              Avatar_UpdateAngle(param_1, keyevent, &newdir, &animno, iswalk);
+                            if (!local_6 || numlock_on) {
+                              Avatar_UpdateAngle(0, key, &newdir, &animno, iswalk);
                             } else {
-                              if ((lastanim != Anim_ReadyWeapon_SmallWpn) &&
-                                 (lastanim != Anim_ReadyWeapon_LargeWpn)) {
+                              if (lastanim != Anim_ReadyWeapon_SmallWpn && lastanim != Anim_ReadyWeapon_LargeWpn) {
                                 animno = Anim_CombatStand_SmallWpn;
                                 local_7 = true;
                               }
                             }
                           } else {
                             if (!npc.isBusy() &&
-                               ((local_6 ||
-                                (((keyevent[1] == SCAN_LEFT || (keyevent[1] == SCAN_RIGHT)) &&
-                                 (keyevent[9] != 0)))))) {
+                               (local_6 || ((key.scancode == SCAN_LEFT || key.scancode == SCAN_RIGHT) && key.field_0x9 != 0))) {
                               animno = Anim_Stand;
                             }
                           }
                         }
                       }
                     } else {
-                      switch (keyevent[1]) {
+                      switch (key.scancode) {
                       case SCAN_LEFT:
                       case SCAN_RIGHT:
                         if (lastwascombat) {
-                          Avatar_UpdateAngle(param_1, keyevent, &newdir, &animno, iswalk);
+                          Avatar_UpdateAngle(0, key, &newdir, &animno, iswalk);
                         } else {
                           animno = Anim_Stand;
                         }
                         break;
                       case SCAN_UP:
-                        if (!iswalk) {
-                          animno = Anim_StartRun_SmallWpn;
-                        } else {
-                          animno = Anim_Walk;
-                        }
+                        animno = (iswalk ? Anim_Walk : Anim_StartRun_SmallWpn);
                         break;
-                      case SCAN_QUESTION:
+                      case SCAN_SLASH:
                         animno = Anim_Advance_SmallWpn;
                         break;
                       case SCAN_HOME:
@@ -387,21 +360,13 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
                         animno = Anim_SlideRight;
                         break;
                       case SCAN_END:
-                        if (!npc.isKneeling()) {
-                          animno = Anim_SlowCombatRollLeft;
-                        } else {
-                          animno = Anim_CombatRollLeft;
-                        }
+                        animno = (npc.isKneeling() ? Anim_CombatRollLeft : Anim_SlowCombatRollLeft);
                         break;
                       case SCAN_DOWN:
                         animno = Anim_Retreat_SmallWpn;
                         break;
                       case SCAN_PG_DN:
-                        if (!npc.isKneeling()) {
-                          animno = Anim_SlowCombatRollRight;
-                        } else {
-                          animno = Anim_CombatRollRight;
-                        }
+                        animno = (npc.isKneeling() ? Anim_CombatRollRight : Anim_SlowCombatRollRight);
                       default:
                         break;
                       }
@@ -410,48 +375,25 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
                     animno = Anim_Retreat_SmallWpn;
                   }
                 } else {
-                  switch(keyevent[1]) {
+                  switch(key.scancode) {
                   case SCAN_HOME:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_Advance_SmallWpn;
-                    } else {
-                      animno = Anim_KneelStop;
-                    }
+                    animno = (npc.isKneeling() ? Anim_KneelStop : Anim_Advance_SmallWpn);
                     break;
                   case SCAN_PG_UP:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_CombatRollRight;
-                    } else {
-                      animno = Anim_SlowCombatRollRight;
-                    }
+                    animno = (npc.isKneeling() ? Anim_SlowCombatRollRight : Anim_CombatRollRight);
                     break;
                   case SCAN_END:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_Retreat_SmallWpn;
-                    } else {
-                      animno = Anim_KneelStop;
-                    }
+                    animno = (npc.isKneeling() ? Anim_KneelStop : Anim_Retreat_SmallWpn);
                     break;
                   case SCAN_PG_DN:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_SlideRight;
-                    } else {
-                      animno = Anim_KneelStop;
-                    }
+                    animno = (npc.isKneeling() ? Anim_KneelStop : Anim_SlideRight);
                     break;
                   case SCAN_INS:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_CombatRollLeft;
-                    } else {
-                      animno = Anim_SlowCombatRollLeft;
-                    }
+                    animno = (npc.isKneeling() ? Anim_SlowCombatRollLeft : Anim_CombatRollLeft);
                     break;
                   case SCAN_DEL:
-                    if (!npc.isKneeling()) {
-                      animno = Anim_SlideLeft;
-                    } else {
-                      animno = Anim_KneelStop;
-                    }
+                    animno = (npc.isKneeling() ? Anim_KneelStop : Anim_SlideLeft);
+                    break;
                   default:
                     break;
                   }
@@ -459,9 +401,9 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
               }
             }
           } else {
-            if (!local_6 || local_23) {
-              newdir = direction;
-              switch(keyevent[1]) {
+            if (!local_6 || numlock_on) {
+              newdir = curdir;
+              switch(key.scancode) {
               case SCAN_UP:
                 if (!npc.isKneeling()) {
                   if (lastwascombat) {
@@ -485,7 +427,7 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
                 break;
               case SCAN_NUM_5:
               case SCAN_DOWN:
-                if (*(int *)(keyevent + 10) == 1) {
+                if (key.field_0xa == 1) {
                   if (!npc.isKneeling()) {
                     animno = Anim_KneelStart;
                   } else {
@@ -504,7 +446,7 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
                 break;
               }
             } else {
-              switch(keyevent[1]) {
+              switch(key.scancode) {
               case SCAN_HOME:
               case SCAN_UP:
               case SCAN_PG_UP:
@@ -513,10 +455,10 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
               case SCAN_END:
               case SCAN_DOWN:
               case SCAN_PG_DN:
-                if ((char)newdir < (char)direction) {
-                  dir_delta = (int)(char)direction - (int)(char)newdir;
+                if ((char)newdir < (char)curdir) {
+                  dir_delta = (int)(char)curdir - (int)(char)newdir;
                 } else {
-                  dir_delta = ((char)direction + 0x10) - (int)(char)newdir;
+                  dir_delta = ((char)curdir + 0x10) - (int)(char)newdir;
                 }
                 if (0x10 - dir_delta < dir_delta) {
                   animno = Anim_CombatRollRight;
@@ -532,9 +474,9 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
             }
           }
         } else {
-          if (!local_6 || local_23) {
-            newdir = direction;
-            switch(keyevent[1]) {
+          if (!local_6 || numlock_on) {
+            newdir = curdir;
+            switch(key.scancode) {
             case SCAN_UP:
               animno = Anim_Advance_SmallWpn;
               break;
@@ -542,7 +484,7 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
               animno = Anim_SlideLeft;
               break;
             case SCAN_NUM_5:
-              if (*(int *)(keyevent + 10) == 1) {
+              if (key.field_0xa == 1) {
                 if (!npc.isKneeling()) {
                   animno = Anim_KneelStart;
                 } else {
@@ -559,7 +501,7 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
               break;
             }
           } else {
-            switch(keyevent[1]) {
+            switch(key.scancode) {
             case SCAN_HOME:
             case SCAN_UP:
             case SCAN_PG_UP:
@@ -568,10 +510,10 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
             case SCAN_END:
             case SCAN_DOWN:
             case SCAN_PG_DN:
-              if ((char)newdir < (char)direction) {
-                dir_delta = (int)(char)direction - (int)(char)newdir;
+              if ((char)newdir < (char)curdir) {
+                dir_delta = (int)(char)curdir - (int)(char)newdir;
               } else {
-                dir_delta = ((char)direction + 0x10) - (int)(char)newdir;
+                dir_delta = ((char)curdir + 0x10) - (int)(char)newdir;
               }
               if (0x10 - dir_delta < dir_delta) {
                 animno = Anim_SlideRight;
@@ -587,48 +529,29 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
           }
         }
       } else {
+        // On rebel base, don't do any combat moves.
         if (lastanim == Anim_Walk || npc.isLastAnimStartRunning() || npc.isLastAnimRunningJumping()) {
-          if (!iswalk) {
-            animno = runanim;
-          } else {
-            animno = Anim_Walk;
-          }
+          animno = (iswalk ? Anim_Walk : runanim);
+        } else if (npc.getDir() == newdir) {
+          animno = (iswalk ? Anim_Walk : Anim_StartRunning);
         } else {
-          int curdir = npc.getDir();
-          if (curdir == newdir) {
-            if (!iswalk) {
-              animno = Anim_StartRunning;
-            } else {
-              animno = Anim_Walk;
-            }
-          } else {
-            animno = Anim_Stand;
-          }
+          animno = Anim_Stand;
         }
       }
+
       if (animno == Anim_NoAnim) {
         return 0;
       }
+
       if ((newdir == DIR_ONE_RIGHT) || (newdir == DIR_ONE_LEFT)) {
 		// Calc new dir for relative moves
-        if (Anim_is16Dir(npc.getShape(), animno)) {
-          if (newdir == DIR_ONE_RIGHT) {
-            newdir = npc.getDir() + 1 & 0xf;
-          } else {
-            newdir = npc.getDir() - 1 & 0xf;
-          }
-        } else {
-          if (newdir == DIR_ONE_RIGHT) {
-            newdir = npc.getDir() + 2 & 0xf;
-          } else {
-            newdir = npc.getDir() - 2 & 0xf;
-          }
-        }
+        newdir = Direction_MoveBy(npc.getDir(), newdir, Anim_is16Dir(npc.getShape(), animno));
       }
+
       bool busy = npc.isBusy();
       if (!busy) {
         uint animpid = npc.doAnim(animno,newdir,0,0);
-        if ((local_7 != false) && (animpid != 0)) {
+        if (local_7 && animpid != 0) {
           struct AnimPrimitiveProcess *p_proc = Process_GetProcById(animpid);
           Target_ClearCrosshairsAndTargetReticle();
           p_proc->set0x40To1AndIncGlobal();
@@ -641,16 +564,13 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
         }
       } else {
 		// NPC is busy..
-        dir = npc.getDir();
-        if (dir == newdir) {
+        if (npc.getDir() == newdir) {
           retval = 0;
         } else {
-  		  enum Animation current_anim;
-          if ((*(int *)(keyevent + 10) == 1) ||
+          if (key.field_0xa == 1 ||
              (lastanim != Anim_Walk && !npc.isLastAnimRunningJumping() && !npc.isLastAnimStartRunning())) {
             struct AnimPrimitiveProcess *animprimproc = Process_Get_11d0_151d(npcno, 0xf0);
-            current_anim = animprimproc->animno;
-            if (FUN_1130_0f94(current_anim) == 0) {
+            if (!Anim_1130_0f94(animprimproc->animno)) {
               retval = 0;
             } else {
               animprimproc->updateNPCDir(newdir);
@@ -661,6 +581,6 @@ byte Avatar_PickNextAnimByKeydown(dword param_1, byte *keyevent) {
         }
       }
     }
+    return retval;
   }
-  return retval;
 }
