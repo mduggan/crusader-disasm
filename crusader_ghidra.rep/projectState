@@ -16,9 +16,9 @@
                         <A VALUE="/usr/lib/java" />
                     </ARRAY>
                 </PLUGIN_STATE>
-                <ROOT_NODE X_POS="205" Y_POS="97" WIDTH="1059" HEIGHT="745" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
+                <ROOT_NODE X_POS="136" Y_POS="62" WIDTH="1111" HEIGHT="713" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
                     <COMPONENT_NODE TOP_INFO="0">
-                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3363944450177517591" />
+                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3388777851816236408" />
                     </COMPONENT_NODE>
                 </ROOT_NODE>
                 <PREFERENCES>
@@ -34,10 +34,14 @@
                             </Table_State>
                         </XML>
                     </PREFERENCE_STATE>
-                    <PREFERENCE_STATE NAME="ghidra.app.plugin.core.help.ProcessorListPlugin$ProcessorListTableModel:Processor:">
+                    <PREFERENCE_STATE NAME="ghidra.plugin.importer.LanguageSortedTableModel:Processor:Variant:Size:Endian:Compiler:">
                         <XML NAME="COLUMN_DATA">
                             <Table_State>
-                                <COLUMN NAME="Processor" WIDTH="450" VISIBLE="true" />
+                                <COLUMN NAME="Processor" WIDTH="87" VISIBLE="true" />
+                                <COLUMN NAME="Variant" WIDTH="157" VISIBLE="true" />
+                                <COLUMN NAME="Size" WIDTH="53" VISIBLE="true" />
+                                <COLUMN NAME="Endian" WIDTH="69" VISIBLE="true" />
+                                <COLUMN NAME="Compiler" WIDTH="69" VISIBLE="true" />
                                 <TABLE_SORT_STATE>
                                     <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
                                 </TABLE_SORT_STATE>
@@ -47,23 +51,23 @@
                     <PREFERENCE_STATE NAME="ghidra.framework.main.datatable.ProjectDataTableModel:Type:Name:Path:Modified:Processor:Endian:Address Size:Compiler:Size:Format:">
                         <XML NAME="COLUMN_DATA">
                             <Table_State>
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileTypeColumn.Type" WIDTH="47" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileNameColumn.Name" WIDTH="145" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFilePathColumn.Path" WIDTH="145" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$ModificationDateColumn.Modified" WIDTH="145" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.ProcessorProjectDataColumn.Processor" WIDTH="89" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.EndianProjectDataColumn.Endian" WIDTH="89" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.AddressSizeProjectDataColumn.Address Size" WIDTH="66" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.CompilerProjectDataColumn.Compiler" WIDTH="89" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.DomainFileSizeProjectDataColumn.Size" WIDTH="100" VISIBLE="true" />
-                                <COLUMN NAME="ghidra.util.table.projectdata.column.FormatProjectDataColumn.Format" WIDTH="99" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileTypeColumn.Type" WIDTH="45" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFileNameColumn.Name" WIDTH="156" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$DomainFilePathColumn.Path" WIDTH="72" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.framework.main.datatable.ProjectDataTableModel$ModificationDateColumn.Modified" WIDTH="165" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.ProcessorProjectDataColumn.Processor" WIDTH="103" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.EndianProjectDataColumn.Endian" WIDTH="101" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.AddressSizeProjectDataColumn.Address Size" WIDTH="91" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.CompilerProjectDataColumn.Compiler" WIDTH="93" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.DomainFileSizeProjectDataColumn.Size" WIDTH="120" VISIBLE="true" />
+                                <COLUMN NAME="ghidra.util.table.projectdata.column.FormatProjectDataColumn.Format" WIDTH="120" VISIBLE="true" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.CreationDateProjectDataColumn.Created" WIDTH="200" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.ExecutablePathProjectDataColumn.Executable Path" WIDTH="60" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.LanguageProjectDataColumn.Language ID" WIDTH="60" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.CreatedWithProjectDataColumn.Created With" WIDTH="100" VISIBLE="false" />
                                 <COLUMN NAME="ghidra.util.table.projectdata.column.Md5ProjectDataColumn.MD5" WIDTH="120" VISIBLE="false" />
                                 <TABLE_SORT_STATE>
-                                    <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="0" SORT_DIRECTION="ascending" SORT_ORDER="1" />
+                                    <COLUMN_SORT_STATE COLUMN_MODEL_INDEX="2" SORT_DIRECTION="ascending" SORT_ORDER="1" />
                                 </TABLE_SORT_STATE>
                             </Table_State>
                         </XML>
@@ -75,13 +79,9 @@
     <PROJECT_DATA_XML_NAME NAME="DISPLAY_DATA">
         <SAVE_STATE>
             <ARRAY NAME="EXPANDED_PATHS" TYPE="string">
-                <A VALUE="crusader_ghidra:es:" />
-                <A VALUE="crusader_ghidra:ja:" />
-                <A VALUE="crusader_ghidra:regret:" />
                 <A VALUE="crusader_ghidra:" />
-                <A VALUE="crusader_ghidra:demo:" />
             </ARRAY>
-            <STATE NAME="SHOW_TABLE" TYPE="boolean" VALUE="false" />
+            <STATE NAME="SHOW_TABLE" TYPE="boolean" VALUE="true" />
         </SAVE_STATE>
     </PROJECT_DATA_XML_NAME>
     <TOOL_MANAGER ACTIVE_WORKSPACE="Workspace">
