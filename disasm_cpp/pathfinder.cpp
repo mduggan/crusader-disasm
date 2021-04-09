@@ -5,9 +5,14 @@ typedef unsigned short word;
 typedef unsigned short uint;
 typedef unsigned int dword;
 typedef unsigned long ulong;
+typedef int int32;
 
 struct Point3 {
     word x, y, z;
+};
+
+enum Animation {
+    Anim_Stand, Anim_Walk, Anim_Advance_SmallWpn
 };
 
 class Process {
@@ -20,49 +25,6 @@ class Process {
     public:
         virtual void run();
         void terminate(int result);
-};
-
-class PathfinderProcess : public Process {
-    public:
-        virtual void run();
-
-    protected:
-        void waitFor(Process *);
-        byte nextDirFromPoint(struct Point3 &npcpt);
-
-    private:
-        word _destitem;
-        int _distance;
-        Point3 _destpt;
-        bool _randomflag; // initialized randomly on creation
-        bool _turn; // turning left or right
-        bool _turnatend;
-
-        byte _nextdir;
-        byte _lastdir;
-        byte _nextdir2;
-
-        bool _solidobject; // initialized to false, or true if pathfinding object is SOLID and has non-zero height
-
-        bool _field_0x3e; // initialized to 0
-        byte _field_0x49; // in practice always initialized to false?
-
-        bool _noshotavailable; // initailized to true
-        word _stopdistance; // seems to be always set to 64
-        bool _dir16;
-
-        word _maxsteps; // initialized to either 12 or 100
-        word _numsteps; // initialized to 0
-
-};
-
-class AttackProcess : public Process {
-public:
-    void setField0x7FTo1();
-};
-
-enum Animation {
-    Anim_Stand, Anim_Walk, Anim_Advance_SmallWpn
 };
 
 class Actor {
@@ -80,6 +42,50 @@ class Actor {
         int fireDistance(int targetno, byte dirtotarget, int x, int y, int z);
 };
 
+class Item;
+
+class CruPathfinderProcess : public Process {
+    public:
+        CruPathfinderProcess(Actor *actor, Item *item, int maxsteps, bool hit = false);
+        CruPathfinderProcess(Actor *actor, int32 x, int32 y, int32 z);
+        ~CruPathfinderProcess();
+
+        virtual void run();
+
+    protected:
+        void waitFor(Process *);
+        byte nextDirFromPoint(struct Point3 npcpt);
+
+    private:
+        word _destitem;
+        int _distance;
+        Point3 _destpt;
+        bool _randomflag; // initialized randomly on creation
+        bool _turn; // turning left or right
+        bool _turnAtEnd;
+
+        byte _nextDir;
+        byte _lastdir;
+        byte _nextDir2;
+
+        bool _solidObject; // initialized to false, or true if pathfinding object is SOLID and has non-zero height
+
+        bool _field_0x3e; // initialized to 0
+
+        bool _noshotavailable; // initailized to true
+        word _stopdistance; // seems to be always set to 64
+        bool _dir16;
+
+        word _maxSteps; // initialized to either 12 or 100
+        word _currentSteps; // initialized to 0
+
+};
+
+class AttackProcess : public Process {
+public:
+    void setField0x7FTo1();
+};
+
 static const word PF_UNK8000 = 0x8000;
 
 static const byte dir_current = 0x10;
@@ -93,9 +99,11 @@ char g_pathfindDirOffsets1[8];
 char g_pathfindDirOffsets2[8];
 
 
-byte PathfinderProcess::nextDirFromPoint(struct Point3 npcpt) {
+
+
+byte CruPathfinderProcess::nextDirFromPoint(struct Point3 npcpt) {
     byte dirtable[7];
-    byte nextdir_table[9];
+    byte nextDir_table[9];
     struct Point3 npcpt_;
     const byte dirtotarget = Coords_GetDirFromTo8(npcpt.x, npcpt.y, _destpt.x, _destpt.y);
     const int maxdiffxy = Coords_MaxDiffXY(npcpt.x, npcpt.y, _destpt.x, _destpt.y);
@@ -105,8 +113,9 @@ byte PathfinderProcess::nextDirFromPoint(struct Point3 npcpt) {
 
     if (maxdiffxy < _distance) {
         _distance = maxdiffxy;
+        npcpt_ = npcpt;
         Animation anim = npc->isInCombat() ? Anim_Walk : Anim_Advance_SmallWpn;
-        Process *newanimproc = AnimPrimitive_CreateProcess(_itemno, anim, dirtotarget, npcpt, _destitem, 0);
+        Process *newanimproc = AnimPrimitive_CreateProcess(_itemno, anim, dirtotarget, npcpt_, _destitem, 0);
         Process_11e0_15ab(newanimproc, _procid);
         newanimproc->run();
         if (!(_flags & PF_UNK8000)) {
@@ -133,16 +142,16 @@ byte PathfinderProcess::nextDirFromPoint(struct Point3 npcpt) {
         } else {
             diroffset = (_turn ? -2 : 2);
         }
-        nextdir_table[1] = _nextdir + diroffset + 8 & 0xf;
+        nextDir_table[1] = _nextDir + diroffset + 8 & 0xf;
 
         for (int i = 2; i < 16; i = i + 2) {
-            const int local_24 = i / 2;
             if (_randomflag) {
                 diroffset = (_turn ? 2 : -2);
             } else {
                 diroffset = (_turn ? -2 : 2);
             }
-            nextdir_table[local_24 + 1] = nextdir_table[local_24] + diroffset & 0xf;
+            const int offset = i / 2;
+            nextDir_table[offset + 1] = nextDir_table[offset] + diroffset & 0xf;
         }
         startoff = 2;
     }
@@ -154,13 +163,11 @@ LAB_1110_0dd5:
             if (_flags & PF_UNK8000) {
                 return 0x10;
             }
-            if ((_nextdir2 != dirtotarget) && !_field_0x3e) {
+            if ((_nextDir2 != dirtotarget) && !_field_0x3e) {
                 _field_0x3e = true;
                 _turn = !(i / 2 % 2);
             }
-            npcpt.x = npcpt_.x;
-            npcpt.y = npcpt_.y;
-            npcpt.z = npcpt_.z;
+            npcpt = npcpt_;
             if (npc->isInCombat() && !npc->isCurrentControlledNPC()) {
                 AttackProcess *attackproc = Kernel_GetProcessForItemAndType(_itemno, 0x259);
                 int targetno = npc->field100;
@@ -168,30 +175,30 @@ LAB_1110_0dd5:
                     npc->doAnim(Anim_Stand, dir_current);
                     attackproc->setField0x7FTo1();
                     _noshotavailable = false;
-                    _turnatend = true;
+                    _turnAtEnd = true;
                     return 0xff;
                 }
             }
-            return _nextdir2;
+            return _nextDir2;
         }
 
         if (!_field_0x3e) {
-            _nextdir2 = dirtable[i / 2];
+            _nextDir2 = dirtable[i / 2];
 LAB_1110_0c26:
-            memcpy(npcpt, &npcpt_, 5);
+            npcpt_ = npcpt;
             Animation anim = npc->isInCombat() ? Anim_Walk : Anim_Advance_SmallWpn;
-            Process *newanimproc = AnimPrimitive_CreateProcess(_itemno, anim, _nextdir2, npcpt, _destitem, 0);
+            Process *newanimproc = AnimPrimitive_CreateProcess(_itemno, anim, _nextDir2, npcpt_, _destitem, 0);
             Process_11e0_15ab(newanimproc, _procid);
             /* run the new anim proc now */
             newanimproc->run();
 
-            if (_solidobject && ((_result >> 1) & 1)) {
-                _turnatend = true;
+            if (_solidObject && ((_result >> 1) & 1)) {
+                _turnAtEnd = true;
                 return 0xff;
             }
 
             if (_stopdistance && (Coords_MaxDiffXY(_destpt.x, _destpt.y, npcpt_.x, npcpt_.y) <= _stopdistance)) {
-                _turnatend = true;
+                _turnAtEnd = true;
                 return 0xff;
             }
 
@@ -199,7 +206,7 @@ LAB_1110_0c26:
                 goto LAB_1110_0dd5;
         } else {
             if (i != 4 && i != 0xe) {
-                _nextdir2 = nextdir_table[i / 2 + 1];
+                _nextDir2 = nextDir_table[i / 2 + 1];
                 goto LAB_1110_0c26;
             }
             goto LAB_1110_0dd5;
@@ -209,22 +216,21 @@ LAB_1110_0c26:
 }
 
 
-void PathfinderProcess::run() {
-    Point3 npcpt;
+void CruPathfinderProcess::run() {
     Actor *npc = getActor(_itemno);
-
     if (!npc || !npc->isInFastArea())
         return;
 
-    /* terminate if not fast and field_0x4a is not 0 */
-    if (_dir16 != false) {
+    if (_dir16) {
         terminate(1);
         return;
     }
 
-    if (_destitem != 0 && _solidobject) {
+    if (_destitem != 0 && _solidObject) {
         Item_GetPoint(&_destpt, _destitem);
     }
+
+    Point3 npcpt;
     npcpt.x = npc->getX();
     npcpt.y = npc->getY();
     npcpt.z = npc->getZOfObjOrContainer();
@@ -233,37 +239,32 @@ void PathfinderProcess::run() {
         terminate(_destpt.z != npcpt.z);
         return;
     }
-    const byte lastdir = _nextdir;
-    _nextdir = nextDirFromPoint(npcpt);
+    const byte lastdir = _nextDir;
+    _nextDir = nextDirFromPoint(npcpt);
     _lastdir = lastdir;
     /* terminate if the next dir is 0x10 or 0xff */
-    if (_nextdir == 0x10) {
-        terminate(0);
+    if (_nextDir == 0x10) {
+       terminate(0);
         return;
     }
-    if (_nextdir == 0xff) {
-        if (_field_0x49 != 0) {
-            terminate(1);
-            return;
-        }
+    if (_nextDir == 0xff) {
         _dir16 = true;
     } else {
-        if (_numsteps == _maxsteps) {
+        if (_currentSteps == _maxSteps) {
             terminate(0);
             return;
         }
     }
-    if (_field_0x49 == 0) {
-        byte newdir;
-        if (_dir16 == false) {
-            newdir = _nextdir;
-        } else {
-            newdir = _nextdir2;
-        }
-        npc->turnTowardsDirection(newdir, _dir16 != false, 1);
-        Animation anim = npc->isInCombat() ? Anim_Advance_SmallWpn : Anim_Walk;
-        Process *newproc = npc->doAnim(anim, newdir);
-        waitFor(newproc);
+    byte newdir;
+    if (!_dir16) {
+        newdir = _nextDir;
+    } else {
+        newdir = _nextDir2;
     }
-    _numsteps += 1;
+
+    npc->turnTowardsDirection(newdir, _dir16, 1);
+    Animation anim = npc->isInCombat() ? Anim_Advance_SmallWpn : Anim_Walk;
+    Process *newproc = npc->doAnim(anim, newdir);
+    waitFor(newproc);
+    _currentSteps += 1;
 }
