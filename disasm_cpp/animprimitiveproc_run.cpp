@@ -1,11 +1,13 @@
 typedef unsigned char byte;
 typedef unsigned short word;
 typedef unsigned short uint;
-typedef unsigned int dword;
 typedef unsigned long ulong;
 typedef int int32;
+typedef unsigned int uint32;
 
 struct Point3 {
+    Point3();
+    Point3(word x, word y, word z);
     word x, y, z;
 };
 
@@ -31,9 +33,37 @@ public:
     bool isterminated();
 };
 
+enum AnimActionFlags {
+		AAF_NONE		 = 0x0000,
+		AAF_TWOSTEP      = 0x0001,
+		AAF_ATTACK       = 0x0002, // U8 only? also present in crusader, but ignored.
+		AAF_LOOPING      = 0x0004,
+		AAF_UNSTOPPABLE  = 0x0008,
+		AAF_LOOPING2_U8  = 0x0010,
+		AAF_ENDLOOP_U8   = 0x0020, // TODO: This starts a new anim at the end if pathfinding
+		AAF_ENDLOOP_CRU  = 0x0040, // TODO: This starts a new anim at the end if pathfinding
+		AAF_HANGING      = 0x0080,
+		AAF_16DIRS       = 0x4000, // Cru only
+		AAF_DESTROYACTOR = 0x8000, // destroy actor after animation finishes
+		AAF_ROTATED     = 0x10000, // Cru only
+};
+
+enum AnimFrameFlags {
+    AFF_ONGROUND = 0x00000002,
+    AFF_FLIPPED  = 0x00000020,
+    AFF_SPECIAL  = 0x00000800, // U8 only
+    AFF_HURTY    = 0x00001000, // Crusader only - TODO: find a better name for this.
+    AFF_USECODE  = 0x00004000,
+    AFF_CRUFLIP  = 0x00008000  // Crusader only
+    //AFF_UNKNOWN  = 0xF0E0B01C,
+    //AFF_FIRE     = 0x0F1F00C0
+};
+
+
 class AnimPrimitiveProcess : public Process {
 public:
     void run();
+    void checkCollisionAndHurl(const Point3 &pt1, const Point3 &pt2);
 
 protected:
     void checkToStartNewAnimation();
@@ -42,16 +72,24 @@ protected:
     int _frameskip;
     Point3 *_startpt;
     int _field0x3f;
+    int _field0x3c;
     int _framecount;
     bool _checkedAltAnim;
     byte _currentDir;
+    byte _frameRepeat;
+    uint32 _animFlags;
+    int _pathfindtarget;
+    bool _gotBlocked;
 };
 
 enum ItemStatus {
-    FLG_Flipped
+    FLG_Flipped = 1
 };
 
 int g_frameSkip;
+bool g_avatarInStasis;
+int g_animDirXOffsets[16];
+int g_animDirYOffsets[16];
 
 class Actor {
 public:
@@ -65,42 +103,65 @@ public:
     bool isCurrentControlledNPC() const;
     bool isEntirelyOnScreen() const;
     void getPoint(Point3 &pt) const;
-    enum ItemStatus getStatus() const;
-    void setStatus(enum ItemStatus status);
+    void setFlag(enum ItemStatus status);
+    void clearFlag(enum ItemStatus status);
+    int getZ() const;
+    void playSound(int snd);
+    bool calledFromAnim();
+    void getHurt();
 
     byte _flags0x59;
 };
 
 Actor *getActor(word itemno);
+void assert(bool);
+
+struct AreaSearch {
+    void init();
+    void clear();
+    void collideMove();
+    int firstcollision;
+    bool isblocked;
+    Point3 pt;
+};
+
+struct FrameMeta {
+    uint32 _flags;
+    uint _frameno;
+    int _deltadir;
+    int _deltaZ;
+    uint _sound;
+
+    bool is_cruattack();
+};
+
+Process *Process_Find(int _itemno, int _proctype);
+void AnimCache_GetFrameMetadata(int shapeno, int _animno, byte dir, int frameno, FrameMeta *metaout);
+
+
+
 
 
 void AnimPrimitiveProcess::run()
 {
-  enum ItemStatus status;
   Process *otherproc;
   struct AreaSearch srch;
   Process *waitproc;
-  byte frameno_;
-  struct Point3 pt;
+  byte frameno;
   struct Point3 itempt;
-  int nextx;
-  int nexty;
-  byte nextz;
+  struct Point3 nextpt;
   uint collisionobj;
-  bool has_deltaz;
   byte searchresult;
   int iStack32;
   bool unstoppable;
   bool cStack29;
-  byte frame_meta[8];
-  byte frame_meta_[8];
-  byte nextz_;
-  int nextx_;
-  int nexty_;
+  FrameMeta frame_meta;
+  FrameMeta frame_meta_;
+  Point3 nextpt_;
 
   word itemno = _itemno;
   Actor *a = getActor(itemno);
-  AreaSearch_AlllocAndOrInit_SearchStruct(&srch);
+  srch.init();
   const int shapeno = a->getShape();
   if (0x3f < _animno) {
     /* invalid animation no, stop. */
@@ -117,14 +178,16 @@ void AnimPrimitiveProcess::run()
     if (isterminated() || _animno == Anim_Invalid) {
       return;
     }
-  }
-  else {
+  } else {
     cStack29 = false;
   }
+
   if (_field0x3f != 0) {
-    (code **)((proc->proc).fnPtr + 0xc)();
+    // Note: this calls the other terminate (0xc offset)
+    terminate();
     return;
   }
+
   _frameskip = 0;
   do {
     _frameskip = 0;
@@ -138,39 +201,37 @@ void AnimPrimitiveProcess::run()
       }
     }
     if (cStack29 == false) {
-      byte frameno = a->getFrame();
+      byte curframeno = a->getFrame();
       if (_frameskip != 0) {
-        if ((((frameno != _framecount - 1) && (frameno != _framecount - 2)) &&
-            (_animno != Anim_QuickJump)) && (g_avatarInStasis == 0)) {
-          frameno_ = frameno + 2;
-          AnimCache_GetFrameMetadata(shapeno, _animno, _currentDir, frameno + 1, frame_meta);
+        if ((curframeno != _framecount - 1) && (curframeno != _framecount - 2) &&
+            (_animno != Anim_QuickJump) && !g_avatarInStasis) {
+          frameno = curframeno + 2;
+          AnimCache_GetFrameMetadata(shapeno, _animno, _currentDir, curframeno + 1, &frame_meta);
           goto LAB_1150_1b64;
         }
       }
-      frameno_ = frameno + 1;
+      frameno = curframeno + 1;
       _frameskip = 0;
-    }
-    else {
+    } else {
       cStack29 = false;
-      frameno_ = a->getFrame();
-      if ((_frameskip == 0) || (frameno_ != 2)) {
+      frameno = a->getFrame();
+      if ((_frameskip == 0) || (frameno != 2)) {
         _frameskip = 0;
       } else {
-        AnimCache_GetFrameMetadata(shapeno,_animno, _currentDir, 1, frame_meta);
+        AnimCache_GetFrameMetadata(shapeno,_animno, _currentDir, 1, &frame_meta);
       }
     }
 LAB_1150_1b64:
     otherproc = waitproc;
-    byte animflags = proc->animmeta[1];
     /* flag bit 0 (twostep) */
-    if ((animflags & 1) != 0) {
+    if (!(_animFlags & AAF_TWOSTEP)) {
       /* if animation is going back (flag held in npc) */
       if ((a->_flags0x59 >> 2 & 1) == 0) {
-        if (((animflags >> 2 & 1) != 0) && ((uint)frameno_ == _framecount - 1)) {
-            // fixme: something weird here in disasm
-          otherproc = Process_Get_11d0_151d(_itemno, _proctype);
+        if ((_animFlags & AAF_LOOPING) && ((uint)frameno == _framecount - 1)) {
+          // fixme: something weird here in disasm
+          otherproc = Process_Find(_itemno, _proctype);
           waitproc = FUN_11d0_15f2();
-          if (!waitproc) || (*(enum Animation *)(var12 + 0x36) != _animno)) {
+          if (!waitproc || (*(enum Animation *)(waitproc + 0x36) != _animno)) {
             a->_flags0x59 |= 4;
             terminate();
             return;
@@ -179,375 +240,319 @@ LAB_1150_1b64:
       } else {
         uint framecounthalf = _framecount / 2;
         waitproc = (struct Process *)((ulong)waitproc & 0xffff | (ulong)framecounthalf << 0x10);
-        if ((((frameno_ == framecounthalf) ||
-             ((_frameskip != 0 && (frameno_ == framecounthalf - 1)))) &&
-            (_framecount != 3)) || ((frameno_ == 2 && (_framecount == 3)))) {
+        if (((frameno == framecounthalf ||
+             (_frameskip != 0 && frameno == framecounthalf - 1)) && _framecount != 3) || ((frameno == 2 && _framecount == 3))) {
           a->_flags0x59 &= 0xfb;
           terminate();
           return;
         }
-        if (_framecount == frameno_) {
-          if ((animflags >> 2 & 1) == 0) {
+        if (_framecount == frameno) {
+          if (!(_animFlags & AAF_LOOPING)) {
             a->setFrame(0);
           } else {
-            waitproc = (struct Process *)((ulong)otherproc & 0xff | (ulong)framecounthalf << 0x10);
+            bool skipflag = false;
             if (!a->isCurrentControlledNPC()) {
-              if (g_frameSkip > 1 || !a->isEntirelyOnScreen(itemno)) {
-                waitproc._0_2_ = CONCAT11(1,(undefined)waitproc);
-                waitproc = (struct Process *)((ulong)waitproc & 0xffff0000 | (ulong)(uint)waitproc);
+              if (g_frameSkip > 1 || !a->isEntirelyOnScreen()) {
+                skipflag = true;
               }
-            } else {
-              if (g_frameSkip == 3) {
-                waitproc._0_2_ = CONCAT11(1,(undefined)waitproc);
-                waitproc = (struct Process *)((ulong)waitproc & 0xffff0000 | (ulong)(uint)waitproc);
-              }
+            } else if (g_frameSkip == 3) {
+              skipflag = true;
             }
-            if (waitproc._1_1_ == '\0') {
+            if (!skipflag) {
                 a->setFrame(1);
             } else {
               _frameskip = 1;
-              AnimCache_GetFrameMetadata
-                        (shapeno,_animno,_currentDir,1,
-                         (word *)frame_meta);
+              AnimCache_GetFrameMetadata(shapeno,_animno,_currentDir, 1, &frame_meta);
               a->setFrame(0);
             }
           }
-          frameno_ = a->getFrame();
+          frameno = a->getFrame();
         }
       }
     }
-                    /* update current anim frame */
-    if (_framecount <= frameno_) {
+    /* update current anim frame */
+    if (_framecount <= frameno) {
       if (_framecount != 1) {
         a->_flags0x59 |= 4;
       }
-                    /* terminate */
+      /* terminate */
       terminate();
       return;
     }
-    a->setFrame(frameno_);
-    AnimCache_GetFrameMetadata
-              (shapeno,_animno,_currentDir,frameno_,
-               (word *)frame_meta_);
-    if (_frameskip != 0) {
-      nexty_ = frame_meta_._4_2_ << 7;
-      frame_meta_._4_2_ = frame_meta_._4_2_ & 0xfe00;
-      frame_meta_._4_3_ =
-           frame_meta_._4_3_ & 0xff0000 |
-           (uint3)(frame_meta_._4_2_ | (nexty_ >> 7) + ((frame_meta._4_2_ << 7) >> 7) & 0x1ffU);
-                    /* double deltadir value */
-      frame_meta_[2] = frame_meta_[2] + frame_meta[2];
+
+    a->setFrame(frameno);
+    AnimCache_GetFrameMetadata(shapeno,_animno,_currentDir,frameno, &frame_meta_);
+    if (_frameskip) {
+      /* combine deltadir values
+      TODO: double-check disasm here if it seems wrong (we don't frameskip so
+      maybe don't care? .. */
+      frame_meta_._deltadir += frame_meta._deltadir;
+      frame_meta_._deltaZ += frame_meta._deltaZ;
     }
-    if (_starpt == 0) {
-      a->getPoint(pt);
-      itempt = pt;
+
+    if (_startpt == 0) {
+      a->getPoint(itempt);
     } else {
-      itempt = proc->start_pt;
+      itempt = *_startpt;
     }
-                    /* if AFF_CRUFLIP, flip item. */
-    if (frame_meta_._0_2_ >> 8 == 0) {
-      status = a->getStatus();
-      a->setStatus(status & ~FLG_Flipped);
+
+    /* if AFF_CRUFLIP, flip item. */
+    if (frame_meta_._flags & AFF_CRUFLIP) {
+      a->clearFlag(FLG_Flipped);
     } else {
-      status = a->getStatus();
-      a->setStatus(status | FLG_Flipped);
+      a->setFlag(FLG_Flipped);
     }
-    int deltadir = ((int)(frame_meta_._4_2_ << 7) >> 7) * 2;
-                    /* frame meta byte 2 = deltaz */
-    if ((deltadir == 0) && (frame_meta_[2] == 0)) {
-      has_deltaz = false;
-    } else {
-      has_deltaz = true;
+
+    bool is_move = (frame_meta_._deltadir || frame_meta_._deltaZ);
+
+    if (itempt.z < 0) {
+      /* TODO: disasm is strange here, double-check.
+      It adds sign bits of itemz to deltaz */
+      frame_meta_._deltaZ *= -1;
     }
-    uint currentz = (uint)itempt.z;
-    if (SCARRY2(currentz,(int)(char)frame_meta_[2]) !=
-        (int)(currentz + (int)(char)frame_meta_[2]) < 0) {
-      frame_meta_[2] = -itempt.z;
-    }
-                    /* if rotated flag (bit 4 of second byte) is set.. */
+
+    /* if rotated flag (bit 4 of second byte) is set.. */
     int diroff;
-    if ((proc->animmeta[2] >> 4 & 1) == 0) {
+    if (!(_animFlags & AAF_ROTATED)) {
       diroff = _currentDir;
     } else {
       diroff = _currentDir + 4 & 0xf;
     }
-    nextx = itempt.x + *(char *)((int)g_animDirXOffsets + diroff) * deltadir;
-    nexty = itempt.y + *(char *)((int)g_animDirYOffsets + diroff) * deltadir;
-    nextz = itempt.z + frame_meta_[2];
+    nextpt.x = itempt.x + g_animDirXOffsets[diroff] * frame_meta_._deltadir;
+    nextpt.y = itempt.y + g_animDirYOffsets[diroff] * frame_meta_._deltadir;
+    nextpt.z = itempt.z + frame_meta_._deltaZ;
     if (a->isInCombat()) {
       const Actor *combattarget = a->getCombatTarget();
-      if (combattarget && ((char)proc->animmeta[1] < '\0')) {
+      /* byte 1 bit 7.. AAF_HANGING ? */
+      if (combattarget && (_animFlags & AAF_HANGING)) {
         byte itemz = a->getZ();
         byte targetz = combattarget->getZ();
         if (targetz < itemz) {
-          nextz = nextz - 1;
+          nextpt.z -= 1;
         } else if (itemz < targetz) {
-            nextz = nextz + 1;
+          nextpt.z = += 1;
         }
       }
     }
-    nextz_ = nextz;
-    nexty_ = nexty;
-    nextx_ = nextx;
-    if (proc->hitgroundfalling == 0) {
-                    /* frame flag bit 1 = ONGROUND */
-      if ((frame_meta_[5] >> 1 & 1) == 0) {
+
+    nextpt_ = nextpt;
+    if (!_gotBlocked) {
+      if (!(frame_meta_._flags & AFF_ONGROUND)) {
         iStack32 = 4;
       } else {
         iStack32 = 0x11;
       }
       collisionobj = 0;
-                    /* bit 3 of flags is AAF_UNSTOPPABLE */
-      if (((proc->animmeta[1] >> 3 & 1) == 0) || (_startpt != 0)) {
+      if (!(_animFlags & AAF_UNSTOPPABLE) || (_startpt != 0)) {
         unstoppable = false;
       } else {
         unstoppable = true;
       }
-      AreaSearch_Clear((struct AreaSearch *)&srch);
-      if (_starpt == 0) {
-        if (proc->unstoppable == 0) {
-                    /* frame flag bit 1 = ONGROUND */
-          if ((frame_meta_[5] >> 1 & 1) == 0) {
-            if (!has_deltaz) {
+
+      srch.clear();
+      if (_startpt == 0) {
+        if (!proc->unstoppable) {
+          /* frame flag bit 1 = ONGROUND */
+          if (!(frame_meta_._flags & AFF_ONGROUND)) {
+            if (!is_move) {
               searchresult = 1;
-            }
-            else {
+            } else {
               searchresult = AreaSearch_10e0_0b39
-                                       ((struct AreaSearch *)&srch,shapeno,
-                                        (struct Point3 *)&itempt,nextx,nexty,
-                                        nextz,(byte)iStack32,itemno,0,proc->pathfindtarget);
+                                       (&srch, shapeno, &itempt, &nextpt,
+                                       (byte)iStack32, itemno, 0,
+                                       _pathfindtarget);
             }
             if ((searchresult == 0) && (srch.firstcollision != 0)) {
-              nextx = itempt.x;
-              nexty = itempt.y;
-              nextz = itempt.z + frame_meta_[2];
+              nextpt = itempt;
+              nextpt.z += frame_meta_._deltaZ;
               searchresult = AreaSearch_10e0_0b39
-                                       ((struct AreaSearch *)&srch,shapeno,
-                                        (struct Point3 *)&itempt,itempt.x,
-                                        itempt.y,nextz,(byte)iStack32,itemno,0,proc->pathfindtarget);
-            }
+                                       (&srch, shapeno, &itempt, &nextpt,
+                                       (byte)iStack32,itemno, 0,
+                                       _pathfindtarget); }
             collisionobj = srch.firstcollision;
             if (searchresult == 0) {
-              proc->field_0x3c = 1;
+              _field0x3c = 1;
               if (isterminated()) {
                 return;
               }
-              if (srch.isblocked != 0) {
-                proc->termval |= 2;
-                terminate()
+              if (srch.isblocked) {
+                _result |= 2;
+                terminate();
                 return;
               }
-              nextx = itempt.x;
-              nexty = itempt.y;
-              nextz = itempt.z;
-                    /* bit 3 of flags is AAF_UNSTOPPABLE */
-              if ((proc->animmeta[1] >> 3 & 1) != 0) {
+              nextpt = itempt;
+              if (_animFlags & AAF_UNSTOPPABLE) {
                 proc->unstoppable = 1;
               }
             } else {
-              if (has_deltaz) {
-                Item_Grab((int *)&itemno);
-                AreaSearch_CollideMove((struct AreaSearch *)&srch);
+              if (is_move) {
+                Item_Grab(&itemno);
+                srch.collideMove();
               }
               unstoppable = true;
               if (isterminated()) {
                 return;
               }
             }
-          }
-          else {
+          } else {
             /* frame is ONGROUND.. */
-            byte cStack34;
-            if (!has_deltaz) {
+            byte blocked;
+            if (!is_move) {
               searchresult = 1;
-            }
-            else {
-              searchresult = FUN_10a0_1841(&itemno, (struct Point3 *)&nextx, 1, iStack32,
-                                           proc->pathfindtarget, &cStack34,
-                                           (uint *)&collisionobj);
+            } else {
+              searchresult = FUN_10a0_1841(&itemno, &nextpt, 1, iStack32,
+                                           _pathfindtarget, &blocked, &collisionobj);
             }
             if (isterminated()) {
               return;
             }
-                    /* frame bit 1 AFF_ONGROUND */
-            if ((((searchresult == 0) && ((frame_meta_[5] >> 1 & 1) != 0)) && (collisionobj == 0))
-               && (nextx = nextx_, nexty = nexty_, nextz = nextz_,
-                  searchresult = FUN_10a0_1841(&itemno, (struct Point3 *)&nextx, 1, 4,
-                                               proc->pathfindtarget, &cStack34,
-                                               (uint *)&collisionobj),
-                  isterminated())) {
-              return;
+            /* frame bit 1 AFF_ONGROUND */
+            if ((searchresult == 0 && frame_meta_._flags & AFF_ONGROUND && collisionobj == 0)) {
+              nextpt = nextpt_;
+              searchresult = FUN_10a0_1841(&itemno, &nextpt, 1, 4,
+                                               _pathfindtarget, &blocked, &collisionobj),
+              if (isterminated())
+                return;
             }
             if (searchresult == 0) {
-              if (cStack34 != '\0') {
-                proc->termval |= 2;
-                nextx = nextx_;
-                nexty = nexty_;
-                nextz = nextz_;
+              nextpt = nextpt_;
+
+              if (blocked) {
+                _result |= 2;
                 terminate();
                 return;
               }
-                    /* bit 3 of anim flags = AAF_UNSTOPPABLE */
-              if ((proc->animmeta[1] >> 3 & 1) == 0) {
+              /* bit 3 of anim flags = AAF_UNSTOPPABLE */
+              if (!(_animFlags & AAF_UNSTOPPABLE)) {
                 if (collisionobj == 0) {
                   unstoppable = true;
-                  nextx = nextx_;
-                  nexty = nexty_;
-                  nextz = nextz_;
-                }
-                else {
-                  proc->field_0x3c = 1;
-                  nextx = nextx_;
-                  nexty = nexty_;
-                  nextz = nextz_;
+                } else {
+                  _field0x3c = 1;
                   if (isterminated()) {
                     return;
                   }
                 }
+              } else {
+                proc->unstoppable = true;
               }
-              else {
-                proc->unstoppable = 1;
-                nextx = nextx_;
-                nexty = nexty_;
-                nextz = nextz_;
-              }
-            }
-            else {
+            } else {
               /* no delta z, is onground, don't need to check for fall */
-              Item_GetPoint(&nextx, &itemno);
+              a->getPoint(nextpt);
               unstoppable = true;
             }
           }
+        } else {
+          /* proc->unstoppable is true. */
+          nextpt = itempt;
         }
-        else {
-                    /* proc->unstoppable is true. */
-          nextx = itempt.x;
-          nexty = itempt.y;
-          nextz = itempt.z;
-        }
-      }
-      else {
-                    /* (else start pt not null) frame bit 1 AFF_ONGROUND */
-        if ((frame_meta_[5] >> 1 & 1) == 0) {
+      } else {
+        /* (else startpt not null) */
+        if (!(frame_meta_._flags & AFF_ONGROUND)) {
           searchresult = AreaSearch_10e0_0b39
-                                   ((struct AreaSearch *)&srch,shapeno,
-                                    proc->startpt,
-                                    nextx,nexty,nextz,(byte)iStack32,(proc->proc).itemno,0,
-                                    proc->pathfindtarget);
+                                   ((struct AreaSearch *)&srch, shapeno,
+                                   _startpt, nextpt, (byte)iStack32, itemno,0,
+                                    _pathfindtarget);
           if ((searchresult == 0) && (srch.firstcollision != 0)) {
-            nextz = itempt.z + frame_meta_[2];
-            nextx = itempt.x;
-            nexty = itempt.y;
+            nextpt = itempt;
+            nextpt.z += frame_meta_._deltaZ;
             searchresult = AreaSearch_10e0_0b39
-                                     ((struct AreaSearch *)&srch,shapeno,
-                                      (struct Point3 *)proc->startpt,itempt.x,
-                                      itempt.y,nextz,(byte)iStack32,itemno,0,proc->pathfindtarget);
+                                     ((struct AreaSearch *)&srch, shapeno,
+                                      _startpt, nextpt, (byte)iStack32,
+                                      itemno,0, _pathfindtarget);
           }
         } else {
-          wVar4 = proc->startpt_hi;
           searchresult = AreaSearch_10e0_162f
-                                   ((struct AreaSearch *)&srch,shapeno,
-                                    (struct Point3 *)proc->startpt,
-                                    (struct Point3 *)&nextx,
-                                    (byte)iStack32,(proc->proc).itemno,proc->pathfindtarget);
-          if ((((searchresult == 0) && ((frame_meta_[5] >> 1 & 1) != 0)) &&
-              (srch.firstcollision == 0)) &&
-             (wVar4 = proc->startpt_hi, nextx = nextx_, nexty = nexty_, nextz = nextz_,
-             searchresult = AreaSearch_10e0_162f
+                                   ((struct AreaSearch *)&srch, shapeno,
+                                    _startpt, &nextpt,
+                                    (byte)iStack32, itemno, _pathfindtarget);
+          if (searchresult == 0 && (frame_meta_._flags & AFF_ONGROUND) && srch.firstcollision == 0) {
+            nextpt = nextpt_;
+            searchresult = AreaSearch_10e0_162f
                                       ((struct AreaSearch *)&srch,shapeno,
-                                       (struct Point3 *)proc->startpt,
-                                       (struct Point3 *)&nextx,4,
-                                       (proc->proc).itemno,proc->pathfindtarget), nextz_ < nextz)) {
-            searchresult = 0;
+                                       _startpt, &nextpt, 4, itemno,
+                                       _pathfindtarget);
+            if (nextpt_.z < nextpt.z) {
+              searchresult = 0;
+            }
           }
           if (searchresult == 0) {
-            nextx = itempt.x;
-            nexty = itempt.y;
-            nextz = itempt.z;
+            nextpt = itempt;
           } else {
-            nextx = srch.pt.x;
-            nexty = srch.pt.y;
-            nextz = srch.pt.z;
+            nextpt = srch.pt;
           }
         }
         collisionobj = srch.firstcollision;
-        proc->startpt = Point3(nextx, nexty, nextz);
-        if (srch.isblocked != 0) {
-          proc->termval |= 2;
+        *_startpt = nextpt;
+        if (srch.isblocked) {
+          _result |= 2;
         }
         if (searchresult == 0) {
-          if ((srch.isblocked != 0) && ((proc->animmeta[1] >> 3 & 1) == 0)) {
-            proc->hitgroundfalling = 1;
+          if (srch.isblocked && !(_animFlags & AAF_UNSTOPPABLE)) {
+            _gotBlocked = true;
             goto LAB_1150_2ae6;
           }
         } else {
           unstoppable = true;
         }
       }
-      if (isterminated()) {
-        AssertError(s_ANIMPRIM.C_1478_2a28,0x432);
-      }
+
+      assert(!isterminated());
+
       if (unstoppable == false) {
         if (_startpt != 0) {
-          (code **)((proc->proc).fnPtr + 0xc)();
+          // note this uses the alternate terminate 0xc
+          terminate();
           return;
         }
-                    /* if AAF_HANGING flag is not set */
-        if ((-1 < (char)proc->animmeta[1]) &&
-           (AnimPrimitive_CheckCollisionAndHurl(proc,itempt.x,itempt.y,itempt.z,nextx,nexty,nextz)
-           , isterminated())) {
-          return;
+        /* if AAF_HANGING flag is not set */
+        if (!(_animFlags & AAF_HANGING)) {
+          checkCollisionAndHurl(itempt, nextpt);
+          if (isterminated())
+            return;
         }
         (code **)((proc->proc).fnPtr + 0x2c)();
         return;
       }
-      if (_starpt == 0) {
-        Item_SetFrame(&itemno,frame_meta_._0_2_ & 0xfff);
+      if (_startpt == 0) {
+        a->setFrame(frame_meta_._frameno);
+
         if (_frameskip != 0) {
-          uint framesound = (uint)frame_meta[3];
-          if (framesound != 0) {
-            Item_Sound_Play(&itemno,framesound);
+          // Handle events for the skipped frame
+          if (frame_meta._sound) {
+            a->playSound(frame_meta._sound);
           }
-                    /* Frame flag bit 6 == AFF_USECODE */
-          if (((frame_meta[1] >> 6 & 1) != 0) &&
-             (Item_CalledFromAnim((int *)&itemno),
-             isterminated())) {
-            return;
+          if ((frame_meta._flags & AFF_USECODE) && a->calledFromAnim()) {
+              if (isterminated())
+                return;
           }
-                    /* frame flag bit 4 AFF_HURTY */
-          if ((frame_meta[1] >> 4 & 1) != 0) {
+          if (frame_meta._flags & AFF_HURTY) {
             a->getHurt();
-            if (isterminated()) {
+            if (isterminated())
               return;
-            }
           }
-          if ((((frame_meta._5_2_ << 5) >> 0xb != 0) ||
-              ((int)((uint)frame_meta[6] << 8) >> 0xb != 0)) || ((frame_meta[7] & 0xf) != 0)) {
+          if (frame_meta.is_cruattack()) {
             FUN_1000_34a1(frame_meta,8);
             a->fireWeapon(0, srch._2_4_);
           }
         }
-        uint sfxno = (uint)frame_meta_[3];
-        if (sfxno != 0) {
-          Item_Sound_Play(&itemno,sfxno);
+
+        if (frame_meta_._sound) {
+          a->playSound(frame_meta._sound);
         }
-                    /* if AFF_USECODE flag set.. */
-        if ((frame_meta_[1] >> 6 & 1) != 0) {
-          Item_CalledFromAnim((int *)&itemno);
-          if (isterminated()) {
+
+        if (frame_meta_._flags & AFF_USECODE) {
+          a->calledFromAnim();
+          if (isterminated())
             return;
-          }
         }
-                    /* frame flag bit 4 AFF_HURTY */
-        if ((frame_meta_[1] >> 4 & 1) != 0) {
+
+        if (frame_meta_._flags & AFF_HURTY) {
           a->getHurt();
-          if (isterminated()) {
+          if (isterminated())
             return;
-          }
         }
-                    /* has firex or firey or firez */
-        if ((((frame_meta_._5_2_ << 5) >> 0xb != 0) ||
-            ((int)((uint)frame_meta_[6] << 8) >> 0xb != 0)) || ((frame_meta_[7] & 0xf) != 0)) {
+
+        if (frame_meta_.is_cruattack()) {
           FUN_1000_34a1(frame_meta_,8);
           a->fireWeapon(0, srch._2_4_);
         }
@@ -555,23 +560,21 @@ LAB_1150_1b64:
       if (isterminated()) {
         return;
       }
-      uint framerepeat;
-      if ((_starpt == 0) && framerepeat = proc->animmeta[2] & 0xf, framerepeat != 0)) {
+      if (_startpt == 0 && _frameRepeat) {
         int skipfactor;
         if (_frameskip == 0) {
           skipfactor = 1;
         } else {
           skipfactor = 2;
         }
-        waitproc = AccWait_CreateProcess
-                             ((struct Process *)0x0,framerepeat * skipfactor,0,(proc->proc).itemno);
-        Process_WaitFor(waitproc,(struct Process *)proc);
+        waitproc = AccWait_CreateProcess(_frameRepeat * skipfactor, 0, _itemno);
+        waitFor(waitproc);
         Process_11e0_15ab(waitproc,(proc->proc).procid);
         AccWait_11c0_0249(waitproc);
       }
-                    /* frame flags low byte bit 1 = AFF_ONGROUND: */
-      if ((frame_meta_[5] >> 1 & 1) != 0) {
-        if (AnimPrimitive_CheckCollisionAndHurl(proc,itempt.x,itempt.y,itempt.z,nextx,nexty,nextz) != 0) {
+
+      if (frame_meta_ & AFF_ONGROUND) {
+        if (checkCollisionAndHurl(itempt, nextpt) != 0) {
           return;
         }
         if (isterminated()) {
@@ -580,7 +583,7 @@ LAB_1150_1b64:
       }
     }
 LAB_1150_2ae6:
-    if (_starpt == 0) {
+    if (_startpt == 0) {
       return;
     }
   } while( true );
