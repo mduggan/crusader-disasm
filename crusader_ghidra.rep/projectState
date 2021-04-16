@@ -16,9 +16,9 @@
                         <A VALUE="/usr/lib/java" />
                     </ARRAY>
                 </PLUGIN_STATE>
-                <ROOT_NODE X_POS="136" Y_POS="62" WIDTH="1111" HEIGHT="713" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
+                <ROOT_NODE X_POS="135" Y_POS="60" WIDTH="1111" HEIGHT="713" EX_STATE="0" FOCUSED_OWNER="FrontEnd Tool" FOCUSED_NAME="FrontEnd" FOCUSED_TITLE="Project Window">
                     <COMPONENT_NODE TOP_INFO="0">
-                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3388777851816236408" />
+                        <COMPONENT_INFO NAME="FrontEnd" OWNER="FrontEnd Tool" TITLE="Project Window" ACTIVE="true" GROUP="Default" INSTANCE_ID="3391140407124659608" />
                     </COMPONENT_NODE>
                 </ROOT_NODE>
                 <PREFERENCES>
